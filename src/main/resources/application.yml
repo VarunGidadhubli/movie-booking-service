@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: movie-booking-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3307/movie_booking
+    username: root
+    password: moviebooking
