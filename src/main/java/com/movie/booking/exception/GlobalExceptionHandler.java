@@ -46,4 +46,10 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.CONFLICT).
 				body(new ApiErrorResponse(HttpStatus.CONFLICT.value(), "Duplicate", exception.getMessage(), LocalDateTime.now()));
 	}
+	
+	@ExceptionHandler(TheatreNotFoundException.class)
+	public ResponseEntity<ApiErrorResponse> handleTheatreNotFoundException(TheatreNotFoundException exception){
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), "Not found", exception.getMessage(), LocalDateTime.now()));
+	}
 }
