@@ -46,6 +46,12 @@ public class SecurityConfig {
                                 "/api/theatre/*/approve",
                                 "/api/theatre/*/reject")
                         .hasRole("ADMIN")
+                        
+                        .requestMatchers(HttpMethod.POST, "/api/screen")
+                        .hasAnyRole("ADMIN", "THEATRE_ADMIN")
+                        
+                        .requestMatchers(HttpMethod.DELETE, "/api/screen/*")
+                        .hasAnyRole("ADMIN", "THEATRE_ADMIN")
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

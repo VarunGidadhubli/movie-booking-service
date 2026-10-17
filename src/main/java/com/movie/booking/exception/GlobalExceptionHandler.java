@@ -52,4 +52,10 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
 				.body(new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), "Not found", exception.getMessage(), LocalDateTime.now()));
 	}
+	
+	@ExceptionHandler(TheatreScreenDuplicateException.class)
+	public ResponseEntity<ApiErrorResponse> handleTheatreScreenDuplicateException(TheatreScreenDuplicateException exception){
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(new ApiErrorResponse(HttpStatus.CONFLICT.value(), "Duplicate", exception.getMessage(), LocalDateTime.now()));
+	}
 }
