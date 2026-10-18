@@ -1,13 +1,17 @@
 package com.movie.booking.service;
 
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.movie.booking.dto.ScreenResponse;
 import com.movie.booking.dto.TheatreRequest;
 import com.movie.booking.dto.TheatreResponse;
+import com.movie.booking.entity.Screen;
 import com.movie.booking.entity.Theatre;
 import com.movie.booking.entity.TheatreStatus;
 import com.movie.booking.entity.User;
@@ -103,6 +107,17 @@ public class TheatreService {
 
 		Theatre savedTheatre = theatreRepository.save(theatre);
 		return toResponse(savedTheatre);
+	}
+	
+	@Transactional
+	public List<ScreenResponse> getScreensByTheatreId(Long theatreId){
+		
+		Theatre theatre = theatreRepository.findById(theatreId).
+				orElseThrow(()->new TheatreNotFoundException("Theatre is not found "+theatreId));
+		List<Screen> listOfScreens = theatre.getScreens();
+		
+		return listOfScreens.stream().map(screen->new ScreenResponse(screen.getId(), 
+				screen.getTheatre().getId(), screen.getScreenNumber(), screen.getStatus())).toList();
 	}
 
 	private TheatreResponse toResponse(Theatre theatre) {

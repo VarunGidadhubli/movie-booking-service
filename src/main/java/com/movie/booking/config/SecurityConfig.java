@@ -52,6 +52,9 @@ public class SecurityConfig {
                         
                         .requestMatchers(HttpMethod.DELETE, "/api/screen/*")
                         .hasAnyRole("ADMIN", "THEATRE_ADMIN")
+                        
+                        .requestMatchers(HttpMethod.POST,"/api/seattype")
+                        .hasRole("ADMIN")
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

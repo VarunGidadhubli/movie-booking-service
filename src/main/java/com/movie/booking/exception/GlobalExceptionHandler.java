@@ -58,4 +58,10 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body(new ApiErrorResponse(HttpStatus.CONFLICT.value(), "Duplicate", exception.getMessage(), LocalDateTime.now()));
 	}
+	
+	@ExceptionHandler(SeatTypeAlreadyExistsException.class)
+	public ResponseEntity<ApiErrorResponse> handleSeatTypeAlreadyExistsException(SeatTypeAlreadyExistsException exception){
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(new ApiErrorResponse(HttpStatus.CONFLICT.value(), "Duplicate", exception.getMessage(), LocalDateTime.now()));
+	}
 }
