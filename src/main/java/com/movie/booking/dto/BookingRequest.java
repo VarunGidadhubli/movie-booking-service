@@ -2,9 +2,14 @@ package com.movie.booking.dto;
 
 import java.util.List;
 
+import jakarta.validation.constraints.NotNull;
+
 public class BookingRequest {
 
+	@NotNull
 	private Long showId;
+	
+	@NotNull
 	private List<Long> seatIds;
 
 	public BookingRequest() {

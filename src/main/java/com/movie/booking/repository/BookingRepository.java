@@ -32,4 +32,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long>{
 	int expireBookingsWithAllSeatsExpired(
 	        @Param("pendingStatus") BookingStatus pendingStatus,
 	        @Param("expiredStatus") BookingStatus expiredStatus);
+	
+	@Modifying
+	@Query(value = """
+			UPDATE booking b
+			SET b.status = 'EXPIRED'
+			WHERE b.status = 'PENDING'
+			  AND EXISTS (
+			      SELECT 1
+			      FROM payments p
+			      WHERE p.booking_id = b.id
+			        AND p.status = 'EXPIRED'
+			  )
+			""", nativeQuery = true)
+	int expirePendingBookings();
 }

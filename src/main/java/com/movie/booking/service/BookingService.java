@@ -6,6 +6,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,17 +15,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.movie.booking.dto.BookingPaymentResponse;
 import com.movie.booking.dto.BookingRequest;
 import com.movie.booking.dto.BookingResponse;
+import com.movie.booking.dto.PaymentResponse;
 import com.movie.booking.entity.Booking;
 import com.movie.booking.entity.BookingSeat;
 import com.movie.booking.entity.BookingStatus;
+import com.movie.booking.entity.Payment;
+import com.movie.booking.entity.PaymentMethod;
+import com.movie.booking.entity.PaymentStatus;
 import com.movie.booking.entity.Seat;
 import com.movie.booking.entity.Show;
 import com.movie.booking.entity.User;
 import com.movie.booking.exception.ShowNotFoundException;
 import com.movie.booking.repository.BookingRepository;
 import com.movie.booking.repository.BookingSeatRepository;
+import com.movie.booking.repository.PaymentRepository;
 import com.movie.booking.repository.SeatRepository;
 import com.movie.booking.repository.ShowRepository;
 import com.movie.booking.repository.UserRepository;
@@ -37,18 +44,25 @@ public class BookingService {
 	private final ShowRepository showRepository;
 	private final UserRepository userRepository;
 	private final SeatRepository seatRepository;
+	private final PaymentRepository paymentRepository;
 
 	public BookingService(BookingRepository bookingRepository, BookingSeatRepository bookingSeatRepository,
-			ShowRepository showRepository, UserRepository userRepository, SeatRepository seatRepository) {
+			ShowRepository showRepository, UserRepository userRepository, SeatRepository seatRepository,
+			PaymentRepository paymentRepository) {
 		this.bookingRepository = bookingRepository;
 		this.bookingSeatRepository = bookingSeatRepository;
 		this.showRepository = showRepository;
 		this.userRepository = userRepository;
 		this.seatRepository = seatRepository;
+		this.paymentRepository = paymentRepository;
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
-	public BookingResponse createBooking(BookingRequest bookingRequest) {
+	public BookingPaymentResponse createBooking(BookingRequest bookingRequest, PaymentMethod paymentMethod) {
+
+		if (paymentMethod == null) {
+			throw new IllegalArgumentException("Payment method is required");
+		}
 
 		if (bookingRequest == null || bookingRequest.getShowId() == null) {
 			throw new IllegalArgumentException("Show ID is required");
@@ -79,7 +93,8 @@ public class BookingService {
 		List<Seat> selectedSeats = new ArrayList<>();
 
 		for (Long seatId : sortedSeatIds) {
-			Seat seat = seatRepository.findByIdForUpdate(seatId).orElseThrow(() -> new IllegalArgumentException("Seat not found: " + seatId));
+			Seat seat = seatRepository.findByIdForUpdate(seatId)
+					.orElseThrow(() -> new IllegalArgumentException("Seat not found: " + seatId));
 
 			if (!seat.getScreen().getId().equals(show.getScreen().getId())) {
 				throw new IllegalArgumentException("Seat " + seatId + " does not belong to the screen for this show");
@@ -111,6 +126,7 @@ public class BookingService {
 		booking.setTotalAmount(totalAmount);
 
 		Booking savedBooking = bookingRepository.save(booking);
+		BookingResponse bookingResponse = new BookingResponse(savedBooking.getId(), currentUser.getId(), show.getId(),seatIds, savedBooking.getStatus(), totalAmount);
 
 		LocalDateTime lockExpiry = now.plusMinutes(10);
 
@@ -132,8 +148,18 @@ public class BookingService {
 
 		bookingSeatRepository.saveAll(bookingSeats);
 
-		return new BookingResponse(savedBooking.getId(), currentUser.getId(), show.getId(), seatIds,
-				BookingStatus.PENDING, totalAmount);
+		Payment payment = new Payment();
+		payment.setBooking(savedBooking);
+		payment.setPaymentMethod(paymentMethod);
+		payment.setAmount(totalAmount);
+		payment.setStatus(PaymentStatus.INITIATED);
+		payment.setTransactionId(UUID.randomUUID().toString());
+
+		Payment savedPayment = paymentRepository.save(payment);
+
+		PaymentResponse paymentResponse = new PaymentResponse(savedPayment.getId(), savedPayment.getBooking().getId(),
+				savedBooking.getTotalAmount(), savedPayment.getTransactionId(), savedPayment.getStatus(), savedPayment.getPaymentMethod());
+		return new BookingPaymentResponse(bookingResponse, paymentResponse);
 	}
 
 	private User getAuthentication() {

@@ -49,5 +49,17 @@ public interface BookingSeatRepository extends JpaRepository<BookingSeat, Long> 
 			  AND bs.lockExpiry <= :now
 			""")
 	int expirePendingSeats(@Param("now") LocalDateTime now);
+	
+	@Modifying
+	@Query(value = """
+			UPDATE booking_seats bs
+			JOIN booking b ON b.id = bs.booking_id
+			JOIN payments p ON p.booking_id = b.id
+			SET bs.status = 'NOT_BOOKED'
+			WHERE b.status = 'PENDING'
+			  AND p.status = 'INITIATED'
+			  AND bs.lock_expiry < CURRENT_TIMESTAMP
+			""", nativeQuery = true)
+	int releaseExpiredSeats();
 
 }
