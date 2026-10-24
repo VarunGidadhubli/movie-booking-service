@@ -7,8 +7,8 @@ import com.movie.booking.dto.UserRequest;
 import com.movie.booking.dto.UserResponse;
 import com.movie.booking.entity.Role;
 import com.movie.booking.entity.User;
-import com.movie.booking.exception.EmailAlreadyRegisteredException;
-import com.movie.booking.exception.RoleNotFoundException;
+import com.movie.booking.exception.DuplicateRecordException;
+import com.movie.booking.exception.RecordNotFoundException;
 import com.movie.booking.repository.RoleRepository;
 import com.movie.booking.repository.UserRepository;
 
@@ -35,11 +35,11 @@ public class UserService {
 	public UserResponse registerCustomer(UserRequest userRequest) {
 		
 		if(userRepository.existsByEmailIgnoreCase(userRequest.getEmail())) {
-			throw new EmailAlreadyRegisteredException("Email id already exists");
+			throw new DuplicateRecordException("Email id already exists");
 		}
 		
 		Role customerRole=roleRepository.findByNameIgnoreCase("CUSTOMER").
-				orElseThrow(()->new RoleNotFoundException("Custome role doesn't exist"));
+				orElseThrow(()->new RecordNotFoundException("Custome role doesn't exist"));
 		
 		User user=new User();
 		user.setUsername(userRequest.getUsername());

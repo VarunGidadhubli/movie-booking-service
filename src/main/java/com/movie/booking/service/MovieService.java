@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import com.movie.booking.dto.MovieRequest;
 import com.movie.booking.dto.MovieResponse;
 import com.movie.booking.entity.Movie;
-import com.movie.booking.exception.MovieNotFoundException;
+import com.movie.booking.exception.RecordNotFoundException;
 import com.movie.booking.repository.MovieRepository;
 
 @Service
@@ -35,14 +35,14 @@ public class MovieService {
 	}
 
 	public void deleteMovie(Long id) {
-		Movie movie=movieRepository.findById(id).orElseThrow(()->new MovieNotFoundException("Movie not found with id: " + id));
+		Movie movie=movieRepository.findById(id).orElseThrow(()->new RecordNotFoundException("Movie not found with id: " + id));
 		movieRepository.delete(movie);
 	}
 
 	public MovieResponse getMovieById(Long id) {
 
 		Movie movie = movieRepository.findById(id)
-				.orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
+				.orElseThrow(() -> new RecordNotFoundException("Movie not found with id: " + id));
 		return new MovieResponse(movie.getId(), movie.getTitle(), movie.getReleaseDate(), movie.getDurationMinutes(),
 				movie.getDescription(), movie.getLanguage());
 	}
@@ -50,7 +50,7 @@ public class MovieService {
 	public MovieResponse updateMovie(Long id, MovieRequest movieRequest) {
 
 		Movie movie = movieRepository.findById(id)
-				.orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
+				.orElseThrow(() -> new RecordNotFoundException("Movie not found with id: " + id));
 		movie.setTitle(movieRequest.getTitle());
 		movie.setReleaseDate(movieRequest.getReleaseDate());
 		movie.setDurationMinutes(movieRequest.getDurationMinutes());

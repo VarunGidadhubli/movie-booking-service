@@ -28,7 +28,9 @@ import com.movie.booking.entity.PaymentStatus;
 import com.movie.booking.entity.Seat;
 import com.movie.booking.entity.Show;
 import com.movie.booking.entity.User;
-import com.movie.booking.exception.ShowNotFoundException;
+import com.movie.booking.exception.DuplicateRecordException;
+import com.movie.booking.exception.MandatoryFieldMissingException;
+import com.movie.booking.exception.RecordNotFoundException;
 import com.movie.booking.repository.BookingRepository;
 import com.movie.booking.repository.BookingSeatRepository;
 import com.movie.booking.repository.PaymentRepository;
@@ -61,31 +63,31 @@ public class BookingService {
 	public BookingPaymentResponse createBooking(BookingRequest bookingRequest, PaymentMethod paymentMethod) {
 
 		if (paymentMethod == null) {
-			throw new IllegalArgumentException("Payment method is required");
+			throw new MandatoryFieldMissingException("Payment method is required");
 		}
 
 		if (bookingRequest == null || bookingRequest.getShowId() == null) {
-			throw new IllegalArgumentException("Show ID is required");
+			throw new MandatoryFieldMissingException("Show ID is required");
 		}
 
 		List<Long> seatIds = bookingRequest.getSeatIds();
 
 		if (seatIds == null || seatIds.isEmpty()) {
-			throw new IllegalArgumentException("At least one seat must be selected");
+			throw new MandatoryFieldMissingException("At least one seat must be selected");
 		}
 
 		if (seatIds.contains(null)) {
-			throw new IllegalArgumentException("Seat IDs cannot contain null");
+			throw new MandatoryFieldMissingException("Seat IDs cannot contain null");
 		}
 
 		if (new HashSet<>(seatIds).size() != seatIds.size()) {
-			throw new IllegalArgumentException("Duplicate seat IDs are not allowed");
+			throw new DuplicateRecordException("Duplicate seat IDs are not allowed");
 		}
 
 		User currentUser = getAuthentication();
 
 		Show show = showRepository.findById(bookingRequest.getShowId())
-				.orElseThrow(() -> new ShowNotFoundException("Show doesn't exist: " + bookingRequest.getShowId()));
+				.orElseThrow(() -> new RecordNotFoundException("Show doesn't exist: " + bookingRequest.getShowId()));
 
 		List<Long> sortedSeatIds = new ArrayList<>(seatIds);
 		sortedSeatIds.sort(Long::compareTo);
@@ -94,10 +96,10 @@ public class BookingService {
 
 		for (Long seatId : sortedSeatIds) {
 			Seat seat = seatRepository.findByIdForUpdate(seatId)
-					.orElseThrow(() -> new IllegalArgumentException("Seat not found: " + seatId));
+					.orElseThrow(() -> new RecordNotFoundException("Seat not found: " + seatId));
 
 			if (!seat.getScreen().getId().equals(show.getScreen().getId())) {
-				throw new IllegalArgumentException("Seat " + seatId + " does not belong to the screen for this show");
+				throw new MandatoryFieldMissingException("Seat " + seatId + " does not belong to the screen for this show");
 			}
 
 			selectedSeats.add(seat);
@@ -110,7 +112,7 @@ public class BookingService {
 			bookingSeatRepository.expirePendingReservation(show.getId(), seatId, now);
 
 			if (bookingSeatRepository.countActiveReservations(show.getId(), seatId, now) > 0) {
-				throw new IllegalArgumentException("Seat " + seatId + " is no longer available");
+				throw new RecordNotFoundException("Seat " + seatId + " is no longer available");
 			}
 		}
 
@@ -172,7 +174,6 @@ public class BookingService {
 
 		Long userId = Long.valueOf(jwt.getSubject());
 
-		return userRepository.findById(userId)
-				.orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+		return userRepository.findById(userId).orElseThrow(() -> new RecordNotFoundException("Authenticated user not found"));
 	}
 }

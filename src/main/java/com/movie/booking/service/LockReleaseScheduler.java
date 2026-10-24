@@ -1,4 +1,3 @@
-
 package com.movie.booking.service;
 
 import java.time.LocalDateTime;
@@ -30,14 +29,9 @@ public class LockReleaseScheduler {
 		LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
 		// Expire pending seat reservations whose locks have elapsed.
-		int expiredSeats = bookingSeatRepository.expirePendingSeats(now);
+		bookingSeatRepository.expirePendingSeats(now);
 
 		// Expire bookings only when all their seat reservations are expired.
-		int expiredBookings = bookingRepository.expireBookingsWithAllSeatsExpired(BookingStatus.PENDING,
-				BookingStatus.EXPIRED);
-
-		if (expiredSeats > 0 || expiredBookings > 0) {
-			System.out.println("Expired seats: " + expiredSeats + ", expired bookings: " + expiredBookings);
-		}
+		bookingRepository.expireBookingsWithAllSeatsExpired(BookingStatus.PENDING, BookingStatus.EXPIRED);
 	}
 }

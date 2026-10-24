@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import com.movie.booking.dto.SeatTypeRequest;
 import com.movie.booking.dto.SeatTypeResponse;
 import com.movie.booking.entity.SeatType;
-import com.movie.booking.exception.SeatTypeAlreadyExistsException;
+import com.movie.booking.exception.DuplicateRecordException;
 import com.movie.booking.repository.SeatTypeRepository;
 
 @Service
@@ -24,7 +24,7 @@ public class SeatTypeService {
 		String name = seatTypeRequest.getName().trim().toUpperCase();
 		
 		if(seatTypeRepository.existsByName(name)) {
-			throw new SeatTypeAlreadyExistsException(name+" already exists");
+			throw new DuplicateRecordException(name+" already exists");
 		}
 		
 		SeatType seatType = new SeatType();

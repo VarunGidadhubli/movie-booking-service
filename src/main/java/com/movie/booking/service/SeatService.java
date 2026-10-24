@@ -13,6 +13,8 @@ import com.movie.booking.dto.SeatResponse;
 import com.movie.booking.entity.Screen;
 import com.movie.booking.entity.Seat;
 import com.movie.booking.entity.SeatType;
+import com.movie.booking.exception.DuplicateRecordException;
+import com.movie.booking.exception.RecordNotFoundException;
 import com.movie.booking.repository.ScreenRepository;
 import com.movie.booking.repository.SeatRepository;
 import com.movie.booking.repository.SeatTypeRepository;
@@ -35,7 +37,7 @@ public class SeatService {
 	public List<SeatResponse> createSeats(Long screenId, BulkSeatRequest bulkSeatRequest) {
 
 		Screen screen = screenRepository.findById(screenId)
-				.orElseThrow(() -> new IllegalStateException("Screen not found exception"));
+				.orElseThrow(() -> new RecordNotFoundException("Screen not found exception"));
 		List<SeatRequest> listOfSeatsRequests = bulkSeatRequest.getSeats();
 		HashSet<Seat> seatsToSave = new HashSet<>();
 		Set<String> requestedSeatNumbers = new HashSet<>();
@@ -43,17 +45,17 @@ public class SeatService {
 		for (SeatRequest seatRequest : listOfSeatsRequests) {
 
 			if (seatRepository.existsByScreenIdAndSeatNumber(seatRequest.getScreenId(),seatRequest.getSeatNumber())) {
-				throw new IllegalArgumentException("Theatre, Screen, Seat number combination already exist");
+				throw new DuplicateRecordException("Theatre, Screen, Seat number combination already exist");
 			}
 			
 			String seatNumber=seatRequest.getSeatNumber().trim().toUpperCase();
 			
 			if (!requestedSeatNumbers.add(seatNumber)) {
-			    throw new IllegalArgumentException("Duplicate seat number exists in the request: " + seatNumber);
+			    throw new DuplicateRecordException("Duplicate seat number exists in the request: " + seatNumber);
 			}
 
 			SeatType seatType = seatTypeRepository.findById(seatRequest.getSeatTypeId()).orElseThrow(
-					() -> new IllegalArgumentException("Seat type not found: " + seatRequest.getSeatTypeId()));
+					() -> new RecordNotFoundException("Seat type not found: " + seatRequest.getSeatTypeId()));
 
 			Seat seat = new Seat();
 			seat.setScreen(screen);

@@ -15,7 +15,7 @@ import com.movie.booking.entity.Screen;
 import com.movie.booking.entity.Theatre;
 import com.movie.booking.entity.TheatreStatus;
 import com.movie.booking.entity.User;
-import com.movie.booking.exception.TheatreNotFoundException;
+import com.movie.booking.exception.RecordNotFoundException;
 import com.movie.booking.repository.TheatreRepository;
 import com.movie.booking.repository.UserRepository;
 
@@ -42,7 +42,7 @@ public class TheatreService {
 		Long userId = Long.valueOf(jwt.getSubject());
 
 		User creator = userRepository.findById(userId)
-				.orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+				.orElseThrow(() -> new RecordNotFoundException("Authenticated user not found"));
 
 		Theatre theatre = new Theatre();
 		theatre.setName(request.getName());
@@ -61,7 +61,7 @@ public class TheatreService {
 	public TheatreResponse getTheatreById(Long id) {
 
 		Theatre theatre = theatreRepository.findById(id)
-				.orElseThrow(() -> new TheatreNotFoundException("Theatre not found with id " + id));
+				.orElseThrow(() -> new RecordNotFoundException("Theatre not found with id " + id));
 
 		return toResponse(theatre);
 	}
@@ -70,7 +70,7 @@ public class TheatreService {
 	public void deleteTheatre(Long id) {
 
 		Theatre theatre = theatreRepository.findById(id)
-				.orElseThrow(() -> new TheatreNotFoundException("Theatre not found with id " + id));
+				.orElseThrow(() -> new RecordNotFoundException("Theatre not found with id " + id));
 
 		theatre.setStatus(TheatreStatus.DELETED);
 		theatreRepository.save(theatre);
@@ -80,7 +80,7 @@ public class TheatreService {
 	public TheatreResponse approveTheatre(Long id) {
 
 		Theatre theatre = theatreRepository.findById(id)
-				.orElseThrow(() -> new TheatreNotFoundException("Theatre not found with id " + id));
+				.orElseThrow(() -> new RecordNotFoundException("Theatre not found with id " + id));
 
 		if (theatre.getStatus() != TheatreStatus.PENDING) {
 			throw new IllegalStateException("Only " + TheatreStatus.PENDING + " can be approved");
@@ -97,7 +97,7 @@ public class TheatreService {
 	@Transactional
 	public TheatreResponse rejectTheatre(Long id) {
 		Theatre theatre = theatreRepository.findById(id)
-				.orElseThrow(() -> new TheatreNotFoundException("Theatre not found with id " + id));
+				.orElseThrow(() -> new RecordNotFoundException("Theatre not found with id " + id));
 
 		if (theatre.getStatus() != TheatreStatus.PENDING) {
 			throw new IllegalStateException("Only pending theatres can be rejected");
@@ -113,7 +113,7 @@ public class TheatreService {
 	public List<ScreenResponse> getScreensByTheatreId(Long theatreId){
 		
 		Theatre theatre = theatreRepository.findById(theatreId).
-				orElseThrow(()->new TheatreNotFoundException("Theatre is not found "+theatreId));
+				orElseThrow(()->new RecordNotFoundException("Theatre is not found "+theatreId));
 		List<Screen> listOfScreens = theatre.getScreens();
 		
 		return listOfScreens.stream().map(screen->new ScreenResponse(screen.getId(), 
@@ -139,6 +139,6 @@ public class TheatreService {
 
 		Long userId = Long.valueOf(jwt.getSubject());
 		return userRepository.findById(userId)
-				.orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+				.orElseThrow(() -> new RecordNotFoundException("Authenticated user not found"));
 	}
 }

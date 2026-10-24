@@ -12,6 +12,8 @@ import com.movie.booking.entity.Movie;
 import com.movie.booking.entity.Screen;
 import com.movie.booking.entity.Show;
 import com.movie.booking.entity.Theatre;
+import com.movie.booking.exception.DuplicateRecordException;
+import com.movie.booking.exception.RecordNotFoundException;
 import com.movie.booking.repository.MovieRepository;
 import com.movie.booking.repository.ScreenRepository;
 import com.movie.booking.repository.ShowRepository;
@@ -43,17 +45,15 @@ public class ShowService {
 
         // 1. Verify that the movie exists.
         Movie movie = movieRepository.findById(request.getMovieId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Movie not found: " + request.getMovieId()));
+                .orElseThrow(() -> new RecordNotFoundException("Movie not found: " + request.getMovieId()));
 
         // 2. Verify that the theatre exists.
         Theatre theatre = theatreRepository.findById(request.getTheatreId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Theatre not found: " + request.getTheatreId()));
+                .orElseThrow(() -> new RecordNotFoundException("Theatre not found: " + request.getTheatreId()));
 
         // 3. Verify that the screen exists.
         Screen screen = screenRepository.findById(request.getScreenId())
-                .orElseThrow(() -> new IllegalArgumentException("Screen not found: " + request.getScreenId()));
+        		.orElseThrow(() -> new RecordNotFoundException("Screen not found: " + request.getScreenId()));
 
         // 4. Ensure that the screen belongs to the requested theatre.
         if (!screen.getTheatre().getId().equals(theatre.getId())) {
@@ -91,7 +91,7 @@ public class ShowService {
                 newEndTimeWithBuffer);
 
         if (conflict) {
-            throw new IllegalArgumentException("Another show conflicts with this schedule or its 20-minute buffer");
+            throw new DuplicateRecordException("Another show conflicts with this schedule or its 20-minute buffer");
         }
 
         // 8. Create and save the show.

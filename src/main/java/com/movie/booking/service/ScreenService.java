@@ -13,8 +13,8 @@ import com.movie.booking.entity.Screen;
 import com.movie.booking.entity.ScreenStatus;
 import com.movie.booking.entity.Theatre;
 import com.movie.booking.entity.User;
-import com.movie.booking.exception.TheatreNotFoundException;
-import com.movie.booking.exception.TheatreScreenDuplicateException;
+import com.movie.booking.exception.DuplicateRecordException;
+import com.movie.booking.exception.RecordNotFoundException;
 import com.movie.booking.repository.ScreenRepository;
 import com.movie.booking.repository.TheatreRepository;
 import com.movie.booking.repository.UserRepository;
@@ -36,7 +36,7 @@ public class ScreenService {
 	public ScreenResponse createScreen(ScreenRequest screenRequest) {
 
 		Theatre theatre = theatreRepository.findById(screenRequest.getTheatreId()).orElseThrow(
-				() -> new TheatreNotFoundException("Theatre not found with id " + screenRequest.getTheatreId()));
+				() -> new RecordNotFoundException("Theatre not found with id " + screenRequest.getTheatreId()));
 
 		User currentUser = getAuthentication();
 		boolean isAdmin = currentUser.getRole().getName().equalsIgnoreCase("ADMIN");
@@ -50,7 +50,7 @@ public class ScreenService {
 
 		if (screenRepository.existsByTheatreIdAndScreenNumber(screenRequest.getTheatreId(),
 				screenRequest.getScreenNumber())) {
-			throw new TheatreScreenDuplicateException("Theatre id and Screen already exists");
+			throw new DuplicateRecordException("Theatre id and Screen already exists");
 		}
 
 		Screen screen = new Screen();
@@ -67,7 +67,7 @@ public class ScreenService {
 	public void updateScreenStatus(Long theatreId, Integer screenNumber, ScreenStatus status) {
 
 		Theatre theatre = theatreRepository.findById(theatreId)
-				.orElseThrow(() -> new TheatreNotFoundException("Theatre doesn't exist: " + theatreId));
+				.orElseThrow(() -> new RecordNotFoundException("Theatre doesn't exist: " + theatreId));
 
 		User currentUser = getAuthentication();
 
@@ -94,7 +94,6 @@ public class ScreenService {
 
 		Long userId = Long.valueOf(jwt.getSubject());
 
-		return userRepository.findById(userId)
-				.orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+		return userRepository.findById(userId).orElseThrow(() -> new RecordNotFoundException("Authenticated user not found"));
 	}
 }
