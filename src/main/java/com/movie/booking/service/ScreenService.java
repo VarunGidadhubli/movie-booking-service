@@ -48,8 +48,8 @@ public class ScreenService {
 		}
 		;
 
-		if (screenRepository.existsByTheatreIdAndScreenNumber(screenRequest.getTheatreId(),
-				screenRequest.getScreenNumber())) {
+		if (screenRepository.existsByTheatreIdAndScreenNumberAndStatus(screenRequest.getTheatreId(),
+				screenRequest.getScreenNumber(),ScreenStatus.ACTIVE)) {
 			throw new DuplicateRecordException("Theatre id and Screen already exists");
 		}
 
@@ -78,7 +78,7 @@ public class ScreenService {
 			throw new AccessDeniedException("You can only update screens for theatres created by you");
 		}
 
-		Screen screen = screenRepository.findByTheatreIdAndScreenNumber(theatreId, screenNumber).orElseThrow(
+		Screen screen = screenRepository.findByTheatreIdAndScreenNumberAndStatus(theatreId, screenNumber,ScreenStatus.ACTIVE).orElseThrow(
 				() -> new IllegalStateException("Screen " + screenNumber + " doesn't exist for theatre " + theatreId));
 
 		screen.setStatus(status);

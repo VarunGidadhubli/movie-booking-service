@@ -16,6 +16,9 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     boolean existsByScreenIdAndSeatNumber(Long screenId, String seatNumber);
     
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT s FROM Seat s WHERE s.id = :seatId")
+    @Query("SELECT s FROM Seat s WHERE s.id = :seatId and s.status = 'ACTIVE'")
     Optional<Seat> findByIdForUpdate(@Param("seatId") Long seatId);
+    
+    @Query("SELECT s FROM Seat s WHERE s.id = :seatId and s.status = 'ACTIVE'")
+    Optional<Seat> findByActiveStatus(@Param("seatId") Long seatId);
 }

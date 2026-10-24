@@ -27,6 +27,7 @@ import com.movie.booking.entity.PaymentMethod;
 import com.movie.booking.entity.PaymentStatus;
 import com.movie.booking.entity.Seat;
 import com.movie.booking.entity.Show;
+import com.movie.booking.entity.ShowStatus;
 import com.movie.booking.entity.User;
 import com.movie.booking.exception.DuplicateRecordException;
 import com.movie.booking.exception.MandatoryFieldMissingException;
@@ -88,6 +89,10 @@ public class BookingService {
 
 		Show show = showRepository.findById(bookingRequest.getShowId())
 				.orElseThrow(() -> new RecordNotFoundException("Show doesn't exist: " + bookingRequest.getShowId()));
+		
+		if (show.getStatus() != ShowStatus.NOT_STARTED) {
+		    throw new DuplicateRecordException("Booking is not allowed because the show has already started or completed");
+		}
 
 		List<Long> sortedSeatIds = new ArrayList<>(seatIds);
 		sortedSeatIds.sort(Long::compareTo);
