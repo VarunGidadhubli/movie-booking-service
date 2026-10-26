@@ -13,7 +13,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long>{
 	@Modifying
 	@Query(value = """
 	    UPDATE payments p
-	    JOIN booking b ON b.id = p.booking_id
+	    JOIN bookings b ON b.id = p.booking_id
 	    SET p.status = 'EXPIRED'
 	    WHERE b.status = 'PENDING'
 	      AND p.status = 'INITIATED'

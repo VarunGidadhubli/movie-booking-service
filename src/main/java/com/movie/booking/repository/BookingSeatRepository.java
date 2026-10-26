@@ -53,7 +53,7 @@ public interface BookingSeatRepository extends JpaRepository<BookingSeat, Long> 
 	@Modifying
 	@Query(value = """
 			UPDATE booking_seats bs
-			JOIN booking b ON b.id = bs.booking_id
+			JOIN bookings b ON b.id = bs.booking_id
 			JOIN payments p ON p.booking_id = b.id
 			SET bs.status = 'NOT_BOOKED'
 			WHERE b.status = 'PENDING'
