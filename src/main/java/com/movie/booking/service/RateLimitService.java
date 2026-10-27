@@ -12,26 +12,25 @@ import io.github.bucket4j.distributed.proxy.ProxyManager;
 public class RateLimitService {
 
 	private final ProxyManager<String> proxyManager;
-	
-	private BucketConfiguration createBucketConfiguration() {
+
+	private BucketConfiguration createBucketConfiguration(long capacity, Duration refillDuration) {
 
 		return BucketConfiguration.builder()
-				.addLimit(limit -> limit.capacity(10).
-						refillGreedy(10, Duration.ofMinutes(1)))
-				.build();
+				.addLimit(limit -> limit.capacity(capacity).refillGreedy(capacity, refillDuration)).build();
 	}
-	
+
 	public RateLimitService(ProxyManager<String> proxyManager) {
 		this.proxyManager = proxyManager;
 	}
-	
-	public BucketProxy resolveBucket(String key) {
-		return proxyManager.builder()
-				.build(key, this::createBucketConfiguration);
+
+	public BucketProxy resolveBucket(String key, long capacity, Duration refillDuration) {
+		BucketConfiguration bucketConfiguration = createBucketConfiguration(capacity, refillDuration);
+		return proxyManager.getProxy(key, () -> bucketConfiguration);
 	}
-	
-	public Boolean allowRequest(String key) {
-		BucketProxy bucketProxy = resolveBucket(key);
+
+	public boolean allowRequest(String key, long capacity, Duration refillDuration) {
+
+		BucketProxy bucketProxy = resolveBucket(key, capacity, refillDuration);
 		return bucketProxy.tryConsume(1);
 	}
 }
