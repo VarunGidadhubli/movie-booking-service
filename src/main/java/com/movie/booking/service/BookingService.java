@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -29,6 +30,8 @@ import com.movie.booking.entity.Seat;
 import com.movie.booking.entity.Show;
 import com.movie.booking.entity.ShowStatus;
 import com.movie.booking.entity.User;
+import com.movie.booking.event.BookingCreatedApplicationEvent;
+import com.movie.booking.event.BookingCreatedEvent;
 import com.movie.booking.exception.DuplicateRecordException;
 import com.movie.booking.exception.MandatoryFieldMissingException;
 import com.movie.booking.exception.RecordNotFoundException;
@@ -48,16 +51,18 @@ public class BookingService {
 	private final UserRepository userRepository;
 	private final SeatRepository seatRepository;
 	private final PaymentRepository paymentRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	public BookingService(BookingRepository bookingRepository, BookingSeatRepository bookingSeatRepository,
 			ShowRepository showRepository, UserRepository userRepository, SeatRepository seatRepository,
-			PaymentRepository paymentRepository) {
+			PaymentRepository paymentRepository, ApplicationEventPublisher eventPublisher) {
 		this.bookingRepository = bookingRepository;
 		this.bookingSeatRepository = bookingSeatRepository;
 		this.showRepository = showRepository;
 		this.userRepository = userRepository;
 		this.seatRepository = seatRepository;
 		this.paymentRepository = paymentRepository;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED)
@@ -163,6 +168,11 @@ public class BookingService {
 		payment.setTransactionId(UUID.randomUUID().toString());
 
 		Payment savedPayment = paymentRepository.save(payment);
+		
+		BookingCreatedEvent bookingCreatedEvent = new BookingCreatedEvent(savedBooking.getId(), currentUser.getId(),
+		        show.getId(), totalAmount, now);
+		
+		eventPublisher.publishEvent(new BookingCreatedApplicationEvent(bookingCreatedEvent));
 
 		PaymentResponse paymentResponse = new PaymentResponse(savedPayment.getId(), savedPayment.getBooking().getId(),
 				savedBooking.getTotalAmount(), savedPayment.getTransactionId(), savedPayment.getStatus(), savedPayment.getPaymentMethod());
