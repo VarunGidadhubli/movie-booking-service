@@ -2,12 +2,13 @@ package com.movie.booking.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final DatabaseRoleJwtAuthenticationConverter
@@ -35,7 +36,7 @@ public class SecurityConfig {
                                 "/api/user")
                         .permitAll()
 
-                        .requestMatchers(
+                      /*  .requestMatchers(
                                 HttpMethod.POST, "/api/theatre")
                         .hasRole("THEATRE_ADMIN")
 
@@ -43,10 +44,6 @@ public class SecurityConfig {
                                 HttpMethod.DELETE, "/api/theatre/**")
                         .hasRole("ADMIN")
                         
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/theatre/*/approve",
-                                "/api/theatre/*/reject")
-                        .hasRole("ADMIN")
                         
                         .requestMatchers(HttpMethod.POST, "/api/screen")
                         .hasAnyRole("ADMIN", "THEATRE_ADMIN")
@@ -55,7 +52,7 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "THEATRE_ADMIN")
                         
                         .requestMatchers(HttpMethod.POST,"/api/seattype")
-                        .hasRole("ADMIN")
+                        .hasRole("ADMIN")*/
 
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

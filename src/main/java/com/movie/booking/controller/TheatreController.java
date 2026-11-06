@@ -1,6 +1,7 @@
 package com.movie.booking.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class TheatreController {
 	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
+	@PreAuthorize("hasRole('THEATRE_ADMIN')")
 	public TheatreResponse createTheatre(@Valid @RequestBody TheatreRequest theatreRequest) {
 		return theatreService.createTheatre(theatreRequest);
 	}
@@ -40,16 +42,19 @@ public class TheatreController {
 	
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@PreAuthorize("hasRole('ADMIN')")
 	public void deleteTheatreById(@PathVariable Long id) {
 		theatreService.deleteTheatre(id);
 	}
 	
 	@PutMapping("/{id}/approve")
+	@PreAuthorize("hasRole('ADMIN')")
 	public TheatreResponse approveTheatre(@PathVariable Long id) {
 		return theatreService.approveTheatre(id);
 	}
 	
 	@PutMapping("/{id}/reject")
+	@PreAuthorize("hasRole('ADMIN')")
 	public TheatreResponse rejectTheatre(@PathVariable Long id) {
 		return theatreService.rejectTheatre(id);
 	}
