@@ -1,5 +1,7 @@
 package com.movie.booking.api;
 
+import java.util.List;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -135,5 +137,43 @@ public class RoleApiTest {
 		
 		Assert.assertEquals(response.statusCode(),TestConstants.CREATED,"Record should be created");
 		
+	}
+	
+	@Test(priority = 4)
+	public void getAllRoles() throws JsonProcessingException {
+		
+		String mail = "alice@example.com", password = "SecurePass123!";
+
+		LoginRequestDTO loginDto = new LoginRequestDTO();
+		loginDto.setEmail(mail);
+		loginDto.setPassword(password);
+
+		String loginRequestBody = objectMapper.writeValueAsString(loginDto);
+
+		Response loginResponse = RestAssured.given().baseUri(TestConstants.BASE_URL).contentType(ContentType.JSON)
+				.body(loginRequestBody).when().post("/api/auth/login");
+
+		LoginResponseDTO loginResponseDTO = loginResponse.as(LoginResponseDTO.class);
+		Assert.assertEquals(loginResponse.statusCode(), 200);
+		Assert.assertNotNull(loginResponseDTO.getAccessToken(), "Access token is empty");
+		Assert.assertNotNull(loginResponseDTO.getTokenType(), "Token type is empty");
+		Assert.assertEquals(loginResponseDTO.getTokenType(), "Bearer");
+		
+		Response listOfRoles = 
+							RestAssured.given()
+								.baseUri(TestConstants.BASE_URL)
+								.header("Authorization",loginResponseDTO.getTokenType() + " " + loginResponseDTO.getAccessToken())
+								.when()
+								.get("/api/roles");
+		
+		List<RoleResponseDTO> roles = listOfRoles.as(new io.restassured.common.mapper.TypeRef<List<RoleResponseDTO>>() {});
+		Assert.assertFalse(roles.isEmpty(), "No roles are found");
+		
+		for(RoleResponseDTO roleResponseDTO : roles) {
+			
+			Assert.assertNotNull(roleResponseDTO.getId(), "Role ID is null");
+		    Assert.assertNotNull(roleResponseDTO.getName(), "Role name is null");
+			System.out.println(roleResponseDTO.getId()+" "+roleResponseDTO.getName());
+		}
 	}
 }
