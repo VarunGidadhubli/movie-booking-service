@@ -32,7 +32,7 @@ public class UserService {
 	}
 	
 	@Transactional
-	public UserResponse registerCustomer(UserRequest userRequest) {
+	public UserResponse registerUser(UserRequest userRequest) {
 		
 		if(userRepository.existsByEmailIgnoreCase(userRequest.getEmail())) {
 			throw new DuplicateRecordException("Email id already exists");

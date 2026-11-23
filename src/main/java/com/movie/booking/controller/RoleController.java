@@ -3,6 +3,7 @@ package com.movie.booking.controller;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,28 +30,33 @@ public class RoleController {
 		this.roleService = roleService;
 	}
 	
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public RoleResponse createRole(@Valid @RequestBody RoleRequest roleRequest) {
 		return roleService.createRole(roleRequest);
 	}
 	
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteRole(@PathVariable Long id) {
 		roleService.deleteRole(id);
 	}
 	
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	@GetMapping
 	public List<RoleResponse> getAllRoles(){
 		return roleService.getAllRoles();
 	}
 	
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	@GetMapping("/{id}")
 	public RoleResponse getRoleById(@PathVariable Long id) {
 		return roleService.getRolebyId(id);
 	}
 	
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	@PutMapping("/{id}")
 	public RoleResponse updateRole(@PathVariable Long id, @Valid @RequestBody RoleRequest roleRequest) {
 		return roleService.updateRole(id, roleRequest);

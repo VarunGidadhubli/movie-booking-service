@@ -23,6 +23,6 @@ public class UserController {
 	
 	@PostMapping
 	public UserResponse createUser(@Valid @RequestBody UserRequest userRequest) {
-		return userService.registerCustomer(userRequest);
+		return userService.registerUser(userRequest);
 	}
 }
